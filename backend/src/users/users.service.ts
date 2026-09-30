@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Role, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -24,5 +25,13 @@ export class UsersService {
   async setActiveRole(user: User, role: Role) {
     if (!user.roles.includes(role)) throw new BadRequestException('Add this role first');
     return this.prisma.user.update({ where: { id: user.id }, data: { activeRole: role } });
+  }
+
+  update(user: User, dto: UpdateUserDto) {
+    return this.prisma.user.update({ where: { id: user.id }, data: dto });
+  }
+
+  setPushToken(user: User, token: string | null) {
+    return this.prisma.user.update({ where: { id: user.id }, data: { expoPushToken: token } });
   }
 }

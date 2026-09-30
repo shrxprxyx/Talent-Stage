@@ -7,10 +7,16 @@ import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { ClerkAuthGuard } from './common/guards/clerk-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, UsersModule],
   controllers: [AppController, HealthController],
-  providers: [AppService, { provide: APP_GUARD, useClass: ClerkAuthGuard }],
+  providers: [
+    AppService,
+    // order matters: auth runs first and sets req.user, then roles checks it
+    { provide: APP_GUARD, useClass: ClerkAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule {}

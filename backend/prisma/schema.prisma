@@ -1,15 +1,441 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  extensions = [vector]
+}
+
+enum Role {
+  FREELANCER
+  CLIENT
+}
+
+enum ProjectStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum MilestoneStatus {
+  PENDING
+  FUNDED
+  SUBMITTED
+  REVISION_REQUESTED
+  APPROVED
+  RELEASED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  REQUIRES_PAYMENT
+  HELD
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+enum AssessmentType {
+  MCQ
+  PRACTICAL
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum AttemptStatus {
+  GENERATING
+  READY
+  SUBMITTED
+  GRADING
+  GRADED
+  FAILED
+}
+
+enum AiJobType {
+  MATCHING
+  PROPOSAL_SCORE
+  MCQ_GENERATE
+  PRACTICAL_GRADE
+  CHALLENGE_GRADE
+  EMBEDDING
+}
+
+enum AiJobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum ChallengeStatus {
+  UPCOMING
+  ACTIVE
+  CLOSED
+}
+
+enum NotificationType {
+  PROPOSAL_RECEIVED
+  PROPOSAL_ACCEPTED
+  PROPOSAL_REJECTED
+  MILESTONE_FUNDED
+  MILESTONE_SUBMITTED
+  MILESTONE_APPROVED
+  PAYMENT_RELEASED
+  NEW_MESSAGE
+  BADGE_EARNED
+  MATCH_READY
+  REVIEW_RECEIVED
+  CHALLENGE
+}
+
+model User {
+  id            String   @id @default(cuid())
+  clerkId       String   @unique
+  email         String   @unique
+  name          String
+  avatarUrl     String?
+  roles         Role[]
+  activeRole    Role?
+  expoPushToken String?
+  stripeAccountId String? @unique          // Connect Express account (freelancer)
+  stripeOnboarded Boolean @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  freelancer    FreelancerProfile?
+  client        ClientProfile?
+  notifications Notification[]
+  messages      Message[]
+  reviewsGiven  Review[] @relation("Reviewer")
+  reviewsGot    Review[] @relation("Reviewee")
+}
+
+model FreelancerProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline      String?
+  bio           String?
+  hourlyRate    Decimal? @db.Decimal(10,2)
+  location      String?
+  available     Boolean  @default(true)
+  ratingAvg     Float    @default(0)
+  ratingCount   Int      @default(0)
+  completedCount Int     @default(0)
+  challengePoints Int    @default(0)
+  embedding     Unsupported("vector(384)")?
+  skills        FreelancerSkill[]
+  badges        SkillBadge[]
+  portfolio     PortfolioItem[]
+  proposals     Proposal[]
+  contracts     Contract[] @relation("ContractFreelancer")
+  matches       MatchResult[]
+  attempts      AssessmentAttempt[]
+  submissions   ChallengeSubmission[]
+}
+
+model ClientProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName String?
+  bio         String?
+  ratingAvg   Float   @default(0)
+  ratingCount Int     @default(0)
+  projects    Project[]
+  contracts   Contract[] @relation("ContractClient")
+}
+
+model Skill {
+  id       String @id @default(cuid())
+  name     String @unique
+  slug     String @unique
+  category String
+  freelancers FreelancerSkill[]
+  projects    ProjectSkill[]
+  badges      SkillBadge[]
+  attempts    AssessmentAttempt[]
+}
+
+model FreelancerSkill {
+  freelancerId String
+  skillId      String
+  yearsExp     Int @default(0)
+  freelancer   FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  skill        Skill @relation(fields: [skillId], references: [id])
+  @@id([freelancerId, skillId])
+}
+
+model PortfolioItem {
+  id           String @id @default(cuid())
+  freelancerId String
+  freelancer   FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  link         String?
+  fileKeys     String[]
+  createdAt    DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      ClientProfile @relation(fields: [clientId], references: [id])
+  title       String
+  description String
+  budgetMin   Decimal  @db.Decimal(10,2)
+  budgetMax   Decimal  @db.Decimal(10,2)
+  deadline    DateTime?
+  status      ProjectStatus @default(DRAFT)
+  embedding   Unsupported("vector(384)")?
+  skills      ProjectSkill[]
+  proposals   Proposal[]
+  matches     MatchResult[]
+  contract    Contract?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([status, createdAt])
+}
+
+model ProjectSkill {
+  projectId String
+  skillId   String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill     Skill   @relation(fields: [skillId], references: [id])
+  @@id([projectId, skillId])
+}
+
+model MatchResult {
+  id           String @id @default(cuid())
+  projectId    String
+  freelancerId String
+  score        Float                     // 0-100
+  reasoning    String
+  createdAt    DateTime @default(now())
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  freelancer   FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  @@unique([projectId, freelancerId])
+}
+
+model Proposal {
+  id           String @id @default(cuid())
+  projectId    String
+  freelancerId String
+  coverLetter  String
+  bidAmount    Decimal @db.Decimal(10,2)
+  estimatedDays Int
+  status       ProposalStatus @default(PENDING)
+  aiScore      Float?
+  aiBreakdown  Json?                      // {skillFit, clarity, pricing, track}
+  aiSummary    String?
+  createdAt    DateTime @default(now())
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  freelancer   FreelancerProfile @relation(fields: [freelancerId], references: [id])
+  contract     Contract?
+  @@unique([projectId, freelancerId])
+}
+
+model Contract {
+  id           String @id @default(cuid())
+  projectId    String @unique
+  proposalId   String @unique
+  clientId     String
+  freelancerId String
+  totalAmount  Decimal @db.Decimal(10,2)
+  status       ContractStatus @default(DRAFT)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  project      Project  @relation(fields: [projectId], references: [id])
+  proposal     Proposal @relation(fields: [proposalId], references: [id])
+  client       ClientProfile @relation("ContractClient", fields: [clientId], references: [id])
+  freelancer   FreelancerProfile @relation("ContractFreelancer", fields: [freelancerId], references: [id])
+  milestones   Milestone[]
+  reviews      Review[]
+}
+
+model Milestone {
+  id          String @id @default(cuid())
+  contractId  String
+  order       Int
+  title       String
+  description String?
+  amount      Decimal @db.Decimal(10,2)
+  dueDate     DateTime?
+  status      MilestoneStatus @default(PENDING)
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  deliverables Deliverable[]
+  payment     Payment?
+  @@unique([contractId, order])
+}
+
+model Deliverable {
+  id          String @id @default(cuid())
+  milestoneId String
+  note        String?
+  fileKeys    String[]
+  feedback    String?                     // client revision feedback
+  submittedAt DateTime @default(now())
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                String @id @default(cuid())
+  milestoneId       String @unique
+  amount            Decimal @db.Decimal(10,2)
+  platformFee       Decimal @db.Decimal(10,2) @default(0)
+  currency          String  @default("usd")
+  status            PaymentStatus @default(REQUIRES_PAYMENT)
+  checkoutSessionId String? @unique
+  paymentIntentId   String? @unique
+  transferId        String? @unique
+  createdAt         DateTime @default(now())
+  milestone         Milestone @relation(fields: [milestoneId], references: [id])
+}
+
+model Conversation {
+  id            String @id @default(cuid())
+  clientUserId  String
+  freelancerUserId String
+  projectId     String?
+  lastMessageAt DateTime @default(now())
+  messages      Message[]
+  @@unique([clientUserId, freelancerUserId, projectId])
+}
+
+model Message {
+  id             String @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  attachmentKey  String?
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User @relation(fields: [senderId], references: [id])
+  @@index([conversationId, createdAt])
+}
+
+model Notification {
+  id        String @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, readAt, createdAt])
+}
+
+model Review {
+  id         String @id @default(cuid())
+  contractId String
+  reviewerId String
+  revieweeId String
+  rating     Int                          // 1-5
+  comment    String?
+  createdAt  DateTime @default(now())
+  contract   Contract @relation(fields: [contractId], references: [id])
+  reviewer   User @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewee   User @relation("Reviewee", fields: [revieweeId], references: [id])
+  @@unique([contractId, reviewerId])
+}
+
+model AssessmentAttempt {
+  id           String @id @default(cuid())
+  freelancerId String
+  skillId      String
+  type         AssessmentType
+  difficulty   Difficulty
+  status       AttemptStatus @default(GENERATING)
+  questions    Json?                      // MCQ: includes correct answers, NEVER sent to client as-is
+  answers      Json?
+  submission   String?                    // practical task response text
+  fileKeys     String[]
+  score        Float?
+  feedback     String?
+  startedAt    DateTime @default(now())
+  expiresAt    DateTime?
+  submittedAt  DateTime?
+  freelancer   FreelancerProfile @relation(fields: [freelancerId], references: [id])
+  skill        Skill @relation(fields: [skillId], references: [id])
+  badge        SkillBadge?
+}
+
+model SkillBadge {
+  id         String @id @default(cuid())
+  freelancerId String
+  skillId    String
+  difficulty Difficulty
+  score      Float
+  attemptId  String @unique
+  issuedAt   DateTime @default(now())
+  freelancer FreelancerProfile @relation(fields: [freelancerId], references: [id])
+  skill      Skill @relation(fields: [skillId], references: [id])
+  attempt    AssessmentAttempt @relation(fields: [attemptId], references: [id])
+  @@unique([freelancerId, skillId, difficulty])
+}
+
+model Challenge {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  startsAt    DateTime
+  endsAt      DateTime
+  status      ChallengeStatus @default(UPCOMING)
+  maxPoints   Int @default(100)
+  submissions ChallengeSubmission[]
+}
+
+model ChallengeSubmission {
+  id           String @id @default(cuid())
+  challengeId  String
+  freelancerId String
+  content      String
+  fileKeys     String[]
+  aiScore      Float?
+  aiFeedback   String?
+  points       Int @default(0)
+  createdAt    DateTime @default(now())
+  challenge    Challenge @relation(fields: [challengeId], references: [id])
+  freelancer   FreelancerProfile @relation(fields: [freelancerId], references: [id])
+  @@unique([challengeId, freelancerId])
+}
+
+model AiJob {
+  id        String @id @default(cuid())
+  type      AiJobType
+  userId    String
+  refId     String                        // projectId / proposalId / attemptId ...
+  status    AiJobStatus @default(QUEUED)
+  attempts  Int @default(0)
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

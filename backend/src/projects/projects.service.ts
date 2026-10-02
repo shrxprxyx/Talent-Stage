@@ -8,7 +8,7 @@ const projectSelect = {
   id: true, clientId: true, title: true, description: true, budgetMin: true, budgetMax: true,
   deadline: true, status: true, createdAt: true, updatedAt: true,
   skills: { include: { skill: true } },
-  client: { select: { id: true, companyName: true, ratingAvg: true, ratingCount: true, user: { select: { name: true, avatarUrl: true } } } },
+  client: { select: { id: true, companyName: true, ratingAvg: true, ratingCount: true, user: { select: { id: true, name: true, avatarUrl: true } } } },
   _count: { select: { proposals: true } },
 } satisfies Prisma.ProjectSelect;
 

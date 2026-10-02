@@ -15,7 +15,7 @@ const proposalSelect = {
   id: true, projectId: true, freelancerId: true, coverLetter: true, bidAmount: true, estimatedDays: true,
   status: true, aiScore: true, aiBreakdown: true, aiSummary: true, createdAt: true,
   freelancer: freelancerBrief,
-  project: { select: { id: true, title: true, status: true, clientId: true } },
+  project: { select: { id: true, title: true, status: true, clientId: true, client: { select: { companyName: true, user: { select: { name: true } } } } } },
 } satisfies Prisma.ProposalSelect;
 
 @Injectable()

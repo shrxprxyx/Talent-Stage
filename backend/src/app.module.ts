@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { SkillsModule } from './skills/skills.module';
+import { ProfilesModule } from './profiles/profiles.module';
 import { UsersModule } from './users/users.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { validateEnv } from './config/env.validation';
@@ -16,6 +18,8 @@ import { RolesGuard } from './common/guards/roles.guard';
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
     UsersModule,
+    SkillsModule,
+    ProfilesModule,
     WebhooksModule,
   ],
   controllers: [AppController, HealthController],

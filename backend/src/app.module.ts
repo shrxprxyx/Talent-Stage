@@ -9,6 +9,7 @@ import { SkillsModule } from './skills/skills.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ProposalsModule } from './proposals/proposals.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { validateEnv } from './config/env.validation';
@@ -24,6 +25,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     ProfilesModule,
     ProjectsModule,
     ProposalsModule,
+    NotificationsModule,
     WebhooksModule,
   ],
   controllers: [AppController, HealthController],

@@ -18,7 +18,7 @@ export default function SignIn() {
       const res = await signIn.create({ identifier: email.trim(), password });
       if (res.status === 'complete') {
         await setActive({ session: res.createdSessionId });
-        router.replace('/home');
+        router.replace('/(tabs)/home');
       } else {
         Alert.alert('Extra step required', 'This account needs another verification step that the app does not support yet.');
       }

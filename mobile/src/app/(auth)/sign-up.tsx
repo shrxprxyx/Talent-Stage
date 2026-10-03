@@ -39,7 +39,7 @@ export default function SignUp() {
       const res = await signUp.attemptEmailAddressVerification({ code: code.trim() });
       if (res.status === 'complete') {
         await setActive({ session: res.createdSessionId });
-        router.replace('/home');
+        router.replace('/(tabs)/home');
       } else {
         Alert.alert('Not finished', 'Verification is incomplete. Check the code and try again.');
       }

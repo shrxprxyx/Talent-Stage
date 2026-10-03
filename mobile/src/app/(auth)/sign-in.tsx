@@ -1,5 +1,5 @@
 import { useSignIn } from '@clerk/expo/legacy';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { AuthShell, clerkMessage } from '../../../components/auth-shell';
@@ -16,9 +16,9 @@ export default function SignIn() {
     setBusy(true);
     try {
       const res = await signIn.create({ identifier: email.trim(), password });
+      console.log('[signin] status:', res.status, 'session:', res.createdSessionId);
       if (res.status === 'complete') {
         await setActive({ session: res.createdSessionId });
-        router.replace('/(tabs)/home');
       } else {
         Alert.alert('Extra step required', 'This account needs another verification step that the app does not support yet.');
       }

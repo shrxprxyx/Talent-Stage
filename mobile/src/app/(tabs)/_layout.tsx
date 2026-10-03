@@ -14,7 +14,7 @@ export default function TabsLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const me = useMe();
   const unread = useUnreadCount();
-
+  console.log('[auth-layout]', { isLoaded, isSignedIn });
   if (!isLoaded || (isSignedIn && me.isLoading)) return <Loading />;
   if (!isSignedIn) return <Redirect href="/" />;
   if (me.error || !me.data) {

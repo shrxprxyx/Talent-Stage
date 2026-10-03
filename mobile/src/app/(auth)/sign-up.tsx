@@ -1,5 +1,5 @@
 import { useSignUp } from '@clerk/expo/legacy';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { AuthShell, clerkMessage } from '../../../components/auth-shell';
@@ -37,9 +37,9 @@ export default function SignUp() {
     setBusy(true);
     try {
       const res = await signUp.attemptEmailAddressVerification({ code: code.trim() });
+      console.log('[signup] status:', res.status, 'session:', res.createdSessionId);
       if (res.status === 'complete') {
         await setActive({ session: res.createdSessionId });
-        router.replace('/(tabs)/home');
       } else {
         Alert.alert('Not finished', 'Verification is incomplete. Check the code and try again.');
       }

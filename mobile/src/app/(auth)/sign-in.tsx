@@ -16,7 +16,7 @@ export default function SignIn() {
     setBusy(true);
     try {
       const res = await signIn.create({ identifier: email.trim(), password });
-      console.log('[signin] status:', res.status, 'session:', res.createdSessionId);
+      //console.log('[signin] status:', res.status, 'session:', res.createdSessionId);
       if (res.status === 'complete') {
         await setActive({ session: res.createdSessionId });
       } else {

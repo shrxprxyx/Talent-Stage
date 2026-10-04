@@ -37,7 +37,7 @@ export default function SignUp() {
     setBusy(true);
     try {
       const res = await signUp.attemptEmailAddressVerification({ code: code.trim() });
-      console.log('[signup] status:', res.status, 'session:', res.createdSessionId);
+      //console.log('[signup] status:', res.status, 'session:', res.createdSessionId);
       if (res.status === 'complete') {
         await setActive({ session: res.createdSessionId });
       } else {

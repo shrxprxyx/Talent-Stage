@@ -5,7 +5,7 @@ import { useMe } from './hooks';
 
 export type AppNotification = {
   id: string; type: string; title: string; body: string;
-  data: { projectId?: string; proposalId?: string; contractId?: string } | null;
+  data: { projectId?: string; proposalId?: string; contractId?: string; milestoneId?: string } | null;
   readAt: string | null; createdAt: string;
 };
 export type NotificationPage = { items: AppNotification[]; total: number; unread: number; page: number; limit: number };

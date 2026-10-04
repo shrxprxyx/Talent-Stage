@@ -14,7 +14,7 @@ export default function TabsLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const me = useMe();
   const unread = useUnreadCount();
-  console.log('[auth-layout]', { isLoaded, isSignedIn });
+
   if (!isLoaded || (isSignedIn && me.isLoading)) return <Loading />;
   if (!isSignedIn) return <Redirect href="/" />;
   if (me.error || !me.data) {
@@ -40,6 +40,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="home" options={{ title: isFreelancer ? 'Browse' : 'Projects', tabBarIcon: icon(isFreelancer ? 'compass' : 'briefcase') }} />
       <Tabs.Screen name="proposals" options={{ title: 'Proposals', href: isFreelancer ? undefined : null, tabBarIcon: icon('send') }} />
+      <Tabs.Screen name="contracts" options={{ title: 'Contracts', tabBarIcon: icon('file-text') }} />
       <Tabs.Screen name="notifications" options={{ title: 'Alerts', tabBarBadge: unread > 0 ? unread : undefined, tabBarIcon: icon('bell') }} />
       <Tabs.Screen name="account" options={{ title: 'Account', tabBarIcon: icon('user') }} />
     </Tabs>

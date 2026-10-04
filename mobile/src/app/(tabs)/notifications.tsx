@@ -11,7 +11,9 @@ export default function Notifications() {
 
   const open = (n: AppNotification) => {
     if (!n.readAt) markRead.mutate(n.id);
-    if (n.data?.projectId) router.push(`/project/${n.data.projectId}`);
+    if (n.data?.milestoneId) router.push(`/milestone/${n.data.milestoneId}`);
+    else if (n.data?.contractId) router.push(`/contract/${n.data.contractId}`);
+    else if (n.data?.projectId) router.push(`/project/${n.data.projectId}`);
   };
 
   return (
@@ -23,7 +25,7 @@ export default function Notifications() {
       <View className="mt-4">
         {list.isLoading ? <T className="py-8 text-center text-muted-foreground">Loading…</T> : null}
         {list.error ? <ErrorBox message={list.error.message} onRetry={() => list.refetch()} /> : null}
-        {list.data && list.data.items.length === 0 ? <Empty title="All caught up" hint="Proposal updates will show up here." /> : null}
+        {list.data && list.data.items.length === 0 ? <Empty title="All caught up" hint="Proposal and contract updates will show up here." /> : null}
         {list.data?.items.map((n) => (
           <Pressable key={n.id} onPress={() => open(n)} className="mb-2 flex-row gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-80">
             <View className={`mt-1.5 h-2 w-2 rounded-full ${n.readAt ? 'bg-transparent' : 'bg-primary'}`} />

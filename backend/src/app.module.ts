@@ -11,6 +11,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { ProposalsModule } from './proposals/proposals.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ContractsModule } from './contracts/contracts.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { UsersModule } from './users/users.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { validateEnv } from './config/env.validation';
@@ -29,6 +30,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     NotificationsModule,
     WebhooksModule,
     ContractsModule,
+    ReviewsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

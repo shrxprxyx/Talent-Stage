@@ -14,6 +14,7 @@ import { ContractsModule } from './contracts/contracts.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { UsersModule } from './users/users.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { MatchingModule } from './matching/matching.module';
 import { validateEnv } from './config/env.validation';
 import { ClerkAuthGuard } from './common/guards/clerk-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -33,6 +34,7 @@ import { AiModule } from './ai/ai.module';
     ContractsModule,
     ReviewsModule,
     AiModule,
+    MatchingModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

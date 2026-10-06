@@ -1,6 +1,7 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AiService } from '../ai/ai.service';
 import { CreateProposalDto, UpdateProposalDto } from './dto/proposal.dto';
 
 // freelancer.embedding is excluded by selecting fields explicitly
@@ -20,7 +21,41 @@ const proposalSelect = {
 
 @Injectable()
 export class ProposalsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly log = new Logger(ProposalsService.name);
+
+  constructor(private prisma: PrismaService, private ai: AiService) {}
+
+  // Runs after the response is sent, so the freelancer never waits on the AI.
+  private async scoreInBackground(proposalId: string) {
+    try {
+      const p = await this.prisma.proposal.findUnique({
+        where: { id: proposalId },
+        select: {
+          coverLetter: true, bidAmount: true, estimatedDays: true,
+          project: { select: { budgetMin: true, budgetMax: true, skills: { select: { skill: { select: { name: true } } } } } },
+          freelancer: { select: { ratingAvg: true, completedCount: true, skills: { select: { skill: { select: { name: true } } } } } },
+        },
+      });
+      if (!p) return;
+      const r = await this.ai.scoreProposal({
+        coverLetter: p.coverLetter,
+        bidAmount: Number(p.bidAmount),
+        estimatedDays: p.estimatedDays,
+        budgetMin: Number(p.project.budgetMin),
+        budgetMax: Number(p.project.budgetMax),
+        projectSkills: p.project.skills.map((s) => s.skill.name),
+        freelancerSkills: p.freelancer.skills.map((s) => s.skill.name),
+        completedCount: p.freelancer.completedCount,
+        ratingAvg: p.freelancer.ratingAvg,
+      });
+      await this.prisma.proposal.update({
+        where: { id: proposalId },
+        data: { aiScore: r.score, aiBreakdown: r.breakdown, aiSummary: r.summary },
+      });
+    } catch (e) {
+      this.log.warn(`AI scoring failed for ${proposalId}: ${e}`);
+    }
+  }
 
   private async freelancerOf(user: User) {
     const f = await this.prisma.freelancerProfile.findUnique({ where: { userId: user.id }, select: { id: true } });
@@ -64,6 +99,7 @@ export class ProposalsService {
         data: { projectId, proposalId: proposal.id },
       },
     });
+    void this.scoreInBackground(proposal.id);
     return proposal;
   }
 
@@ -82,7 +118,9 @@ export class ProposalsService {
   async update(user: User, id: string, dto: UpdateProposalDto) {
     const p = await this.ownedByFreelancer(user, id);
     if (p.status !== 'PENDING') throw new BadRequestException('Only PENDING proposals can be edited');
-    return this.prisma.proposal.update({ where: { id }, data: dto, select: proposalSelect });
+    const updated = await this.prisma.proposal.update({ where: { id }, data: dto, select: proposalSelect });
+    void this.scoreInBackground(id);
+    return updated;
   }
 
   async withdraw(user: User, id: string) {

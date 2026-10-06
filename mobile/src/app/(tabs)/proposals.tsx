@@ -30,6 +30,16 @@ export default function Proposals() {
               </View>
               <T className="mt-0.5 text-xs text-muted-foreground">{p.project.client.companyName ?? p.project.client.user.name}</T>
               <T numberOfLines={2} className="mt-2 text-sm text-muted-foreground">{p.coverLetter}</T>
+              {p.aiScore !== null && (
+                <View className="mt-2 flex-row items-center gap-2 text-sm">
+                  <Meta icon="sparkles" text={`AI Score: ${p.aiScore}`} />
+                  {p.aiBreakdown && (
+                    <T className="text-xs text-muted-foreground">
+                      Skill:{p.aiBreakdown.skillFit} Clar:{p.aiBreakdown.clarity} Price:{p.aiBreakdown.pricing} Track:{p.aiBreakdown.track}
+                    </T>
+                  )}
+                </View>
+              )}
               <View className="mt-3 flex-row flex-wrap gap-x-4 gap-y-1">
                 <Meta icon="dollar-sign" text={money(p.bidAmount)} />
                 <Meta icon="clock" text={days(p.estimatedDays)} />

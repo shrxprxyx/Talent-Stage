@@ -18,6 +18,9 @@ export type Page<T> = { items: T[]; total: number; page: number; limit: number }
 export type Proposal = {
   id: string; projectId: string; freelancerId: string; coverLetter: string; bidAmount: string; estimatedDays: number;
   status: ProposalStatus; createdAt: string;
+  aiScore: number | null;
+  aiBreakdown: { skillFit: number; clarity: number; pricing: number; track: number } | null;
+  aiSummary: string | null;
   freelancer: { id: string; headline: string | null; hourlyRate: string | null; ratingAvg: number; ratingCount: number; completedCount: number; user: { name: string; avatarUrl: string | null } };
   project: { id: string; title: string; status: ProjectStatus; clientId: string; client: { companyName: string | null; user: { name: string } } };
 };

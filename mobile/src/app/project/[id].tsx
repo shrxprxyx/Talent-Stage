@@ -99,6 +99,16 @@ function OwnerSection({ p }: { p: Project }) {
             <Meta icon="check-circle" text={`${pr.freelancer.completedCount} completed`} />
           </View>
           <T className="mt-3 text-sm leading-6">{pr.coverLetter}</T>
+          {pr.aiScore !== null && (
+            <View className="mt-2 flex-row items-center gap-2 text-sm">
+              <Meta icon="sparkles" text={`AI Score: ${pr.aiScore}`} />
+              {pr.aiBreakdown && (
+                <T className="text-xs text-muted-foreground">
+                  Skill:{pr.aiBreakdown.skillFit} Clar:{pr.aiBreakdown.clarity} Price:{pr.aiBreakdown.pricing} Track:{pr.aiBreakdown.track}
+                </T>
+              )}
+            </View>
+          )}
           {pr.status === 'PENDING' && p.status === 'OPEN' ? (
             <View className="mt-4 flex-row gap-2">
               <Button title="Accept" icon="check" onPress={() => accept(pr)} disabled={decide.isPending} className="flex-1" />
@@ -135,6 +145,16 @@ function FreelancerSection({ p }: { p: Project }) {
             <ProposalStatusChip status={existing.status} />
           </View>
           <T className="mt-3 text-sm leading-6">{existing.coverLetter}</T>
+          {existing.aiScore !== null && (
+            <View className="mt-2 flex-row items-center gap-2 text-sm">
+              <Meta icon="sparkles" text={`AI Score: ${existing.aiScore}`} />
+              {existing.aiBreakdown && (
+                <T className="text-xs text-muted-foreground">
+                  Skill:{existing.aiBreakdown.skillFit} Clar:{existing.aiBreakdown.clarity} Price:{existing.aiBreakdown.pricing} Track:{existing.aiBreakdown.track}
+                </T>
+              )}
+            </View>
+          )}
           <T className="mt-2 text-xs text-muted-foreground">Sent {ago(existing.createdAt)}</T>
           {existing.status === 'PENDING' ? <Button title="Withdraw" variant="danger" onPress={withdraw} loading={act.isPending} className="mt-4" /> : null}
         </Card>

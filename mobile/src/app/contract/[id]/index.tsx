@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, Pressable, View } from 'react-native';
 import { ContractStatusChip, MilestoneStatusChip } from '../../../../components/contract-ui';
+import { ReviewSection } from '../../../../components/review-ui';
 import { BackLink, Button, Card, ErrorBox, Meta, Screen, SectionLabel, T } from '../../../../components/ui';
 import { fmtDate, money } from '../../../../lib/format';
 import {
@@ -113,6 +114,8 @@ export default function ContractDetail() {
       ))}
 
       <T className="mt-2 text-xs text-muted-foreground">Payments are simulated for now. Stripe test-mode funding comes next.</T>
+
+      {c.status === 'COMPLETED' ? <ReviewSection contractId={c.id} otherName={other} /> : null}
 
       {c.status === 'DRAFT' || c.status === 'ACTIVE' ? (
         <View className="mt-8">

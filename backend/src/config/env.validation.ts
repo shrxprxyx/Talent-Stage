@@ -14,6 +14,8 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  AI_PROVIDER: z.enum(['mock', 'gemini']).default('mock'),
+  AI_MOCK_DELAY_MS: z.coerce.number().int().min(0).default(800),
   SENTRY_DSN: z.string().optional(),
 });
 

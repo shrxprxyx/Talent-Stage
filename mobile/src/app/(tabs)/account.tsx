@@ -68,6 +68,7 @@ export default function Account() {
 
       <SectionLabel>Profile</SectionLabel>
       <Button title="Edit profile" variant="outline" icon="edit-2" onPress={() => router.push('/profile')} />
+      <Button title="My reviews" variant="outline" icon="star" onPress={() => router.push('/reviews')} className="mt-3" />
 
       <View className="mt-8">
         <Button title="Sign out" variant="danger" icon="log-out" onPress={logout} />

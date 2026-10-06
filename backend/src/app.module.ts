@@ -17,6 +17,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { validateEnv } from './config/env.validation';
 import { ClerkAuthGuard } from './common/guards/clerk-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     WebhooksModule,
     ContractsModule,
     ReviewsModule,
+    AiModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
